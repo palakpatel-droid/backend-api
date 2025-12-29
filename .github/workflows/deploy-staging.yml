@@ -1,0 +1,32 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Login to ACR
+      run: az acr login --name ${{ secrets.ACR_NAME }}
+
+    - name: Build & Push Image
+      run: |
+        docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/backend-api:${{ github.sha }} .
+        docker push ${{ secrets.ACR_NAME }}.azurecr.io/backend-api:${{ github.sha }}
+
+    - name: Deploy to Staging
+      run: |
+        az containerapp update \
+          --name ${{ secrets.STAGING_APP_NAME }} \
+          --resource-group ${{ secrets.RESOURCE_GROUP }} \
+          --image ${{ secrets.ACR_NAME }}.azurecr.io/backend-api:${{ github.sha }}
