@@ -3,8 +3,12 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
+app.get("/health", (req, res) => {
   console.error("ALERT TEST: backend-api error simulation");
+  res.status(200).send("OK");
+});
+
+app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
